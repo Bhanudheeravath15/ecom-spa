@@ -1,22 +1,42 @@
-useEffect(() => {
-  const fetchCart = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userId = user?.userId;
+import React, { useEffect, useState } from 'react';
+import API from '../../api'; // adjust path if needed
 
-    if (!userId) {
-      alert('Please login to view your cart.');
-      return;
-    }
+const Cart = () => {
+  const [cart, setCart] = useState([]);
 
-    try {
-      const res = await API.get(`/cart?userId=${userId}`);
-      setCart(res.data);
-    } catch (err) {
-      console.error('Error fetching cart:', err);
-      alert('Failed to load cart.');
-    }
-  };
+  useEffect(() => {
+    const fetchCart = async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = user?.token;
 
-  fetchCart();
-}, []);
+      if (!token) {
+        alert('Please login to view your cart.');
+        return;
+      }
+
+      try {
+        const res = await API.get('/cart', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setCart(res.data);
+      } catch (err) {
+        console.error('Error fetching cart:', err);
+        alert('Failed to load cart.');
+      }
+    };
+
+    fetchCart();
+  }, []);
+
+  return (
+    <div>
+      {/* Render cart items here */}
+    </div>
+  );
+};
+
+export default Cart;
+
 
