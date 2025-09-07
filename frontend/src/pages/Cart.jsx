@@ -1,59 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import API from '../api';
+useEffect(() => {
+  const fetchCart = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user?.userId;
 
-const Cart = () => {
-  const [cart, setCart] = useState({ items: [] });
+    if (!userId) {
+      alert('Please login to view your cart.');
+      return;
+    }
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const res = await API.get('/cart');
-        setCart(res.data);
-      } catch (err) {
-        console.error('Error fetching cart:', err);
-        alert('Please login to view your cart.');
-      }
-    };
-
-    fetchCart();
-  }, []);
-
-  const removeFromCart = async (itemId) => {
     try {
-      await API.post('/cart/remove', { itemId });
-      setCart((prev) => ({
-        ...prev,
-        items: prev.items.filter((i) => i.itemId._id !== itemId),
-      }));
+      const res = await API.get(`/cart?userId=${userId}`);
+      setCart(res.data);
     } catch (err) {
-      console.error('Error removing item:', err);
+      console.error('Error fetching cart:', err);
+      alert('Failed to load cart.');
     }
   };
 
-  return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Your Cart</h2>
-      {cart.items.length === 0 ? (
-        <p>Your cart is empty.</p>
-      ) : (
-        <ul>
-          {cart.items.map((item) => (
-            <li key={item.itemId._id} className="mb-2 border p-2 flex justify-between items-center">
-              <div>
-                <strong>{item.itemId.name}</strong> - ₹{item.itemId.price} × {item.quantity}
-              </div>
-              <button
-                onClick={() => removeFromCart(item.itemId._id)}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
+  fetchCart();
+}, []);
 
-export default Cart;
