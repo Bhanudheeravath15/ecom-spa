@@ -16,7 +16,8 @@ exports.getItems = async (req, res) => {
         let filter = {};
         if (price) filter.price = { $lte: price };
         if (category) filter.category = category;
-       (filter);
+
+        const items = await Item.find(filter); // ✅ This line was missing
         res.json(items);
     } catch (err) {
         res.status(500).json({ error: err.message });

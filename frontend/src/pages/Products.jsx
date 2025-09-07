@@ -1,49 +1,72 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import API from '../api';
 
-export default function Products() {
-  const [products, setProducts] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetch("http://localhost:5000/api/products") // Update this if needed
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data);
-        setFiltered(data);
-      })
-      .catch(err => console.error("Error fetching products:", err));
-  }, []);
+const Products = () => {
+  const [items, setItems] = useState([]);
+  const [category, setCategory] = useState('');
+  const [price, setPrice] = useState('');
 
   useEffect(() => {
-    const results = products.filter(p =>
-      p.name.toLowerCase().includes(search.toLowerCase())
-    );
-    setFiltered(results);
-  }, [search, products]);
+    const fetchItems = async () => {
+      try {
+        const res = await API.get('/items', {
+          params: { category, price },
+        });
+        setItems(res.data);
+      } catch (err) {
+        console.error('Error fetching items:', err);
+      }
+    };
+
+    fetchItems();
+  }, [category, price]);
+
+  const addToCart = async (itemId) => {
+    try {
+      await API.post('/cart/add', { itemId, quantity: 1 });
+      alert('Item added to cart!');
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      alert('Please login first.');
+    }
+  };
 
   return (
     <div className="p-4">
-      <input
-        type="text"
-        placeholder="Search products..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="mb-4 p-2 border rounded w-full"
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {filtered.map(product => (
-          <div key={product._id} className="border rounded p-4 shadow">
-            <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-2" />
-            <h2 className="text-lg font-semibold">{product.name}</h2>
-            <p className="text-gray-700">₹{product.price}</p>
-            <button className="mt-2 bg-blue-600 text-white px-4 py-2 rounded">
+      <h2 className="text-xl font-bold mb-4">Products</h2>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="border p-2 mr-2"
+        />
+        <input
+          type="number"
+          placeholder="Max Price"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="border p-2"
+        />
+      </div>
+      <ul>
+        {items.map((item) => (
+          <li key={item._id} className="mb-2 border p-2 flex justify-between items-center">
+            <div>
+              <strong>{item.name}</strong> - ₹{item.price}
+            </div>
+            <button
+              onClick={() => addToCart(item._id)}
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+            >
               Add to Cart
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
-}
+};
+
+export default Products;
